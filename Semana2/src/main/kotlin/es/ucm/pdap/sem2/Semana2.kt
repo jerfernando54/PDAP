@@ -135,8 +135,7 @@ fun <T: Comparable<T>> List<T>.isSorted(): Boolean = when{
     this.size <= 0 -> true
     else -> when(this) {
         is Nil -> true
-        is Cons -> if (head < ) this.tail.isSorted()
-                        else false
+        is Cons -> TODO()
     }
 
 }
