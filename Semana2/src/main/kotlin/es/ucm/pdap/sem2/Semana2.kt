@@ -82,13 +82,18 @@ fun <T> List<T>.drop(n: Int): List<T> = when {
 // Ejercicio 6
 // -----------
 
-fun <T> List<T>.split(n: Int): Pair<List<T>, List<T>> = when {
-    n == 0 -> Nil to this
-    n > this.size -> this to Nil
-    else -> when(this) {
-        is Nil -> Nil to Nil
-        is Cons -> Cons(head, tail.take(n-1)) to tail.drop(n-1)
+fun <T> List<T>.split(n: Int): Pair<List<T>, List<T>>  {
+    if (this.size == 0) return Nil to Nil
+    if (n == 0) return Nil to this
+    if (this.size < n) return this to Nil
+    tailrec fun splitRec(list: List<T>, cabeza:List<T>, cola:List<T>): Pair<List<T>, List<T>> = when(list) {
+        is Nil -> cabeza to cola
+        is Cons -> when(cabeza.size) {
+            n -> cabeza to cola
+            else -> splitRec(list.tail,cabeza + Cons(list.head, Nil), list.tail)
+        }
     }
+    return splitRec(this, Nil, Nil)
 }
 
 // Ejercicio 7
@@ -126,60 +131,46 @@ infix fun <T, S> List<T>.zip(other: List<S>): List<Pair<T, S>> = when {
 // Ejercicio 9
 // -----------
 
-fun <T, S> List<Pair<T, S>>.unzip(): Pair<List<T>, List<S>> = TODO()
+fun <T, S> List<Pair<T, S>>.unzip(): Pair<List<T>, List<S>>{
+    if (this is Cons){
+        tailrec fun unzipRec(xs: List<Pair<T, S>>, lPar: List<T>, lImpar:List<S>): Pair<List<T>, List<S>> = when(xs) {
+            is Cons -> unzipRec(xs.tail, lPar + Cons(xs[0].first, Nil), lImpar + Cons(xs[0].second, Nil))
+            else -> lPar to lImpar
+        }
+       return  unzipRec(this, Nil, Nil)
+    }
+    return Nil to Nil
+}
 
 // Ejercicio 10
 // ------------
 
-fun <T: Comparable<T>> List<T>.isSorted(): Boolean = when{
-    this.size <= 0 -> true
-    else -> when(this) {
+fun <T: Comparable<T>> List<T>.isSorted(): Boolean{
+    if (this.size == 0) return true
+    tailrec fun isSortedRec(xs: List<T>):Boolean = when(xs) {
         is Nil -> true
-        is Cons -> TODO()
+        is Cons -> when {
+            xs.size < 2 -> true
+            xs[0] > xs[1] -> false
+            else -> isSortedRec(xs.tail)
+        }
     }
-
+    return isSortedRec(this)
 }
 
 // Ejercicio 11
 // ------------
 
-fun <T> isSubList(xs: List<T>, ys: List<T>): Boolean = TODO()
-
-// Ejercicio 12
-fun <T: Comparable<T>> List<T>.insertOrd(elem: T): List<T> = when(this) {
-    is Nil -> Cons(elem, Nil)
-    is Cons -> if(elem <= this.head) Cons(elem, this)
-                    else Cons(head, this.tail.insertOrd(elem))
-}
-
-fun <T: Comparable<T>> List<T>.iSort(): List<T> = when(this) {
-    is Nil -> Nil
-    is Cons -> tail.iSort().insertOrd(head)
-}
-
-// Ejercicio 13
-//13- a
-infix fun <T: Comparable<T>> List<T>.merge(other: List<T>): List<T> = when(this) {
-    is Nil -> other
-    is Cons -> when(other) {
-        is Nil -> this
-        is Cons -> if (head <= other.head) Cons(head, this.tail merge other)
-                        else Cons(other.head, this merge other.tail)
+fun <T> isSubList(xs: List<T>, ys: List<T>): Boolean {
+    if (xs.size == 0) return true
+    if (ys.size == 0) return false
+    tailrec fun isSubListRec(nXs: Int, nYs: Int, flag: Boolean): Boolean = when {
+        nXs >= xs.size -> true
+        nYs >= ys.size -> false
+        xs[nXs] == ys[nYs] -> isSubListRec(nXs + 1, nYs + 1, true)
+        flag -> false
+        else -> isSubListRec(nXs, nYs + 1, flag)
     }
+    return isSubListRec(0, 0, false)
 }
 
-//13- b
-fun <T: Comparable<T>> List<T>.mergeSort(): List<T> = when {
-    this.size <=1 -> this
-    else -> {
-        val (xs1, xs2) = this.split(this.size / 2)
-        xs1.mergeSort() merge xs2.mergeSort()
-    }
-}
-
-
-
-fun main() {
-    val l = persistentListOf(1, 5, 3)
-    print(l.insertOrd(4))
-}
